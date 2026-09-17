@@ -531,7 +531,7 @@ function Dashboard({
         <DndProvider
             backend={HTML5Backend}
         >
-            <div className="flex min-h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]">
 
                 {/* Sidebar */}
                 <Sidebar
@@ -556,11 +556,11 @@ function Dashboard({
 
                         {/* Welcome */}
                         <section className="mb-8">
-                            <h1 className="text-2xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 Welcome Back 👋
                             </h1>
 
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 Here is your personalized
                                 content.
                             </p>
@@ -571,11 +571,11 @@ function Dashboard({
                             <section className="mb-12">
 
                                 <div className="mb-4">
-                                    <h2 className="text-xl font-semibold text-gray-900">
+                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                         Search Results
                                     </h2>
 
-                                    <p className="mt-1 text-sm text-gray-500">
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         Results for "
                                         {search.query}"
                                     </p>
@@ -666,11 +666,11 @@ function Dashboard({
                         >
 
                             <div className="mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Personalized Feed
                                 </h2>
 
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     Latest{' '}
                                     {selectedCategory}{' '}
                                     news, music and social
@@ -764,7 +764,7 @@ function Dashboard({
                                                         news.status ===
                                                         'loading'
                                                     }
-                                                    className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
                                                 >
                                                     {news.status ===
                                                     'loading'
@@ -777,16 +777,16 @@ function Dashboard({
                                         {/* News Error */}
                                         {news.status ===
                                             'error' && (
-                                            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                                            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/40">
 
                                                 <div className="flex flex-wrap items-center justify-between gap-3">
 
                                                     <div>
-                                                        <p className="font-medium text-red-900">
+                                                        <p className="font-medium text-red-900 dark:text-red-200">
                                                             News could not be loaded.
                                                         </p>
 
-                                                        <p className="mt-1 text-sm text-red-700">
+                                                        <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                                                             Other personalized content is still available.
                                                         </p>
                                                     </div>
@@ -802,7 +802,7 @@ function Dashboard({
                                                                 })
                                                             )
                                                         }
-                                                        className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800"
+                                                        className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800 dark:bg-red-800 dark:hover:bg-red-700"
                                                     >
                                                         Retry News
                                                     </button>
@@ -814,16 +814,16 @@ function Dashboard({
                                         {/* Music Error */}
                                         {recommendations.status ===
                                             'error' && (
-                                            <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
+                                            <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950/40">
 
                                                 <div className="flex flex-wrap items-center justify-between gap-3">
 
                                                     <div>
-                                                        <p className="font-medium text-yellow-900">
+                                                        <p className="font-medium text-yellow-900 dark:text-yellow-200">
                                                             Music recommendations could not be loaded.
                                                         </p>
 
-                                                        <p className="mt-1 text-sm text-yellow-700">
+                                                        <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
                                                             Other personalized content is still available.
                                                         </p>
                                                     </div>
@@ -837,7 +837,7 @@ function Dashboard({
                                                                 )
                                                             )
                                                         }
-                                                        className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-700"
+                                                        className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600"
                                                     >
                                                         Retry Music
                                                     </button>
@@ -849,16 +849,16 @@ function Dashboard({
                                         {/* Social Error */}
                                         {social.status ===
                                             'error' && (
-                                            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/40">
 
                                                 <div className="flex flex-wrap items-center justify-between gap-3">
 
                                                     <div>
-                                                        <p className="font-medium text-blue-900">
+                                                        <p className="font-medium text-blue-900 dark:text-blue-200">
                                                             Social posts could not be loaded.
                                                         </p>
 
-                                                        <p className="mt-1 text-sm text-blue-700">
+                                                        <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
                                                             Other personalized content is still available.
                                                         </p>
                                                     </div>
@@ -870,7 +870,7 @@ function Dashboard({
                                                                 getSocialPosts()
                                                             )
                                                         }
-                                                        className="rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
+                                                        className="rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-700"
                                                     >
                                                         Retry Social
                                                     </button>
@@ -891,11 +891,11 @@ function Dashboard({
                         >
 
                             <div className="mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Trending
                                 </h2>
 
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     Popular content from your personalized sources.
                                 </p>
                             </div>
@@ -953,11 +953,11 @@ function Dashboard({
                         >
 
                             <div className="mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Favorites
                                 </h2>
 
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     Content you have saved.
                                 </p>
                             </div>

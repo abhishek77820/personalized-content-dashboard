@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+/*
+ * Dark mode is controlled by the .dark class
+ * instead of the operating system preference.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    --color-background: #f9fafb;
+    --color-surface: #ffffff;
+    --color-border: #e5e7eb;
+    --color-text-primary: #111827;
+    --color-text-secondary: #6b7280;
+}
+
+.dark {
+    --color-background: #111827;
+    --color-surface: #1f2937;
+    --color-border: #374151;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #9ca3af;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    transition:
+        background-color 200ms ease,
+        color 200ms ease;
+}
