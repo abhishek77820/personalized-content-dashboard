@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Header from './Header'
@@ -19,6 +19,7 @@ import {
 
 import {
     getNews,
+    resetNews,
 } from '../features/news/newsSlice'
 
 import {
@@ -49,7 +50,8 @@ function Dashboard({
     )
 
     const news = useSelector(
-        (state: RootState) => state.news
+        (state: RootState) =>
+            state.news
     )
 
     const recommendations = useSelector(
@@ -58,11 +60,13 @@ function Dashboard({
     )
 
     const social = useSelector(
-        (state: RootState) => state.social
+        (state: RootState) =>
+            state.social
     )
 
     const search = useSelector(
-        (state: RootState) => state.search
+        (state: RootState) =>
+            state.search
     )
 
     const categories = useSelector(
@@ -73,8 +77,24 @@ function Dashboard({
     const selectedCategory =
         categories[0] || 'technology'
 
+    /*
+     * Load personalized content
+     *
+     * Whenever the selected category changes:
+     * 1. Reset old news
+     * 2. Fetch news from page 1
+     * 3. Fetch music recommendations
+     * 4. Fetch social posts
+     */
     useEffect(() => {
-        dispatch(getNews(selectedCategory))
+        dispatch(resetNews())
+
+        dispatch(
+            getNews({
+                category: selectedCategory,
+                page: 1,
+            })
+        )
 
         dispatch(
             getRecommendations(
@@ -82,62 +102,95 @@ function Dashboard({
             )
         )
 
-        dispatch(getSocialPosts())
+        dispatch(
+            getSocialPosts()
+        )
     }, [
         dispatch,
         selectedCategory,
     ])
 
+    /*
+     * Search handler
+     *
+     * useCallback keeps the function reference stable.
+     * This prevents the Header debounce effect
+     * from running continuously.
+     */
+    const handleSearch = useCallback(
+        (query: string) => {
+            if (!query.trim()) {
+                dispatch(clearSearch())
+                return
+            }
+
+            dispatch(
+                searchContentThunk(
+                    query
+                )
+            )
+        },
+        [dispatch]
+    )
+
+    /*
+     * Add or remove a favorite item
+     */
     const handleFavorite = (
         item: ContentItem
     ) => {
         const alreadyFavorite =
             favorites.some(
                 (favorite) =>
-                    favorite.id === item.id
+                    favorite.id ===
+                    item.id
             )
 
         if (alreadyFavorite) {
             dispatch(
-                removeFavorite(item.id)
+                removeFavorite(
+                    item.id
+                )
             )
         } else {
-            dispatch(addFavorite(item))
+            dispatch(
+                addFavorite(item)
+            )
         }
     }
 
-    const handleSearch = useCallback(
-    (query: string) => {
-        if (!query.trim()) {
-            dispatch(clearSearch())
-            return
-        }
-
-        dispatch(searchContentThunk(query))
-    },
-    [dispatch]
-)
-
+    /*
+     * Convert News API data
+     * into our common ContentItem format.
+     */
     const newsItems: ContentItem[] =
-        news.articles.map((article) => ({
-            id: article.id,
-            type: 'news',
-            title: article.title,
-            description:
-                article.description ||
-                'No description available.',
-            imageUrl:
-                article.image || '',
-            source:
-                article.author || 'News',
-            publishedAt:
-                article.published,
-            actionUrl:
-                article.url,
-            actionLabel:
-                'Read More',
-        }))
+        news.articles.map(
+            (article) => ({
+                id: article.id,
+                type: 'news',
+                title: article.title,
+                description:
+                    article.description ||
+                    'No description available.',
+                imageUrl:
+                    article.image ||
+                    '',
+                source:
+                    article.author ||
+                    'News',
+                publishedAt:
+                    article.published,
+                actionUrl:
+                    article.url,
+                actionLabel:
+                    'Read More',
+            })
+        )
 
+    /*
+     * Convert music recommendation data
+     * into our common ContentItem format.
+     */
     const musicItems: ContentItem[] =
         recommendations.items.map(
             (item) => ({
@@ -149,7 +202,8 @@ function Dashboard({
                 imageUrl:
                     item.image,
                 source:
-                    item.genre || 'Music',
+                    item.genre ||
+                    'Music',
                 actionUrl:
                     item.url,
                 actionLabel:
@@ -157,23 +211,33 @@ function Dashboard({
             })
         )
 
+    /*
+     * Convert social API data
+     * into our common ContentItem format.
+     */
     const socialItems: ContentItem[] =
-        social.posts.map((post) => ({
-            id: `social-${post.id}`,
-            type: 'social',
-            title: post.title,
-            description: post.body,
-            imageUrl: '',
-            source:
-                `User #${post.userId}`,
-            publishedAt:
-                `${post.views} views`,
-            actionUrl:
-                `https://dummyjson.com/posts/${post.id}`,
-            actionLabel:
-                'View Post',
-        }))
+        social.posts.map(
+            (post) => ({
+                id: `social-${post.id}`,
+                type: 'social',
+                title: post.title,
+                description:
+                    post.body,
+                imageUrl: '',
+                source:
+                    `User #${post.userId}`,
+                publishedAt:
+                    `${post.views} views`,
+                actionUrl:
+                    `https://dummyjson.com/posts/${post.id}`,
+                actionLabel:
+                    'View Post',
+            })
+        )
 
+    /*
+     * Unified personalized feed
+     */
     const personalizedFeed = [
         ...newsItems,
         ...musicItems,
@@ -181,29 +245,28 @@ function Dashboard({
     ]
 
     /*
-     * Trending
-     *
-     * News:
-     * first 2 current news items
-     *
-     * Music:
-     * first 2 recommendation items
-     *
-     * Social:
-     * top 2 posts by views
+     * Trending news
      */
     const trendingNews =
         newsItems.slice(0, 2)
 
+    /*
+     * Trending music
+     */
     const trendingMusic =
         musicItems.slice(0, 2)
 
+    /*
+     * Trending social posts
+     * based on views.
+     */
     const trendingSocial = [
         ...social.posts,
     ]
         .sort(
             (first, second) =>
-                second.views - first.views
+                second.views -
+                first.views
         )
         .slice(0, 2)
         .map(
@@ -211,7 +274,8 @@ function Dashboard({
                 id: `social-trending-${post.id}`,
                 type: 'social',
                 title: post.title,
-                description: post.body,
+                description:
+                    post.body,
                 imageUrl: '',
                 source:
                     `User #${post.userId}`,
@@ -231,48 +295,64 @@ function Dashboard({
     ]
 
     /*
-     * Convert search results into the common
-     * ContentItem structure used by ContentCard.
+     * Convert search results
+     * into ContentItem format.
      */
     const searchItems: ContentItem[] =
-        search.results.map((item) => ({
-            id: item.id,
-            type: item.type,
-            title: item.title,
-            description:
-                item.description ||
-                'No description available.',
-            imageUrl:
-                item.imageUrl || '',
-            source:
-                item.source,
-            publishedAt:
-                item.publishedAt,
-            rating:
-                item.rating,
-            actionUrl:
-                item.actionUrl,
-            actionLabel:
-                item.actionLabel,
-        }))
+        search.results.map(
+            (item) => ({
+                id: item.id,
+                type: item.type,
+                title: item.title,
+                description:
+                    item.description ||
+                    'No description available.',
+                imageUrl:
+                    item.imageUrl ||
+                    '',
+                source:
+                    item.source,
+                publishedAt:
+                    item.publishedAt,
+                rating:
+                    item.rating,
+                actionUrl:
+                    item.actionUrl,
+                actionLabel:
+                    item.actionLabel,
+            })
+        )
 
+    /*
+     * Initial loading state
+     */
     const isInitialLoading =
         personalizedFeed.length === 0 &&
         (
-            news.status === 'loading' ||
+            news.status ===
+                'loading' ||
             recommendations.status ===
                 'loading' ||
-            social.status === 'loading'
+            social.status ===
+                'loading'
         )
 
+    /*
+     * All three sources failed
+     */
     const allSourcesFailed =
         news.status === 'error' &&
-        recommendations.status === 'error' &&
+        recommendations.status ===
+            'error' &&
         social.status === 'error'
 
     const hasContent =
         personalizedFeed.length > 0
 
+    /*
+     * Check whether all APIs
+     * have finished their first request.
+     */
     const allSourcesFinished =
         (
             news.status === 'success' ||
@@ -285,17 +365,31 @@ function Dashboard({
                 'error'
         ) &&
         (
-            social.status === 'success' ||
-            social.status === 'error'
+            social.status ===
+                'success' ||
+            social.status ===
+                'error'
         )
 
+    /*
+     * No content after all APIs finish
+     */
     const hasNoContent =
         allSourcesFinished &&
         !hasContent
 
+    /*
+     * Retry all APIs
+     */
     const retryAll = () => {
+        dispatch(resetNews())
+
         dispatch(
-            getNews(selectedCategory)
+            getNews({
+                category:
+                    selectedCategory,
+                page: 1,
+            })
         )
 
         dispatch(
@@ -309,8 +403,30 @@ function Dashboard({
         )
     }
 
+    /*
+     * Load next news page
+     */
+    const loadMoreNews = () => {
+        if (
+            news.status === 'loading' ||
+            !news.hasMore
+        ) {
+            return
+        }
+
+        dispatch(
+            getNews({
+                category:
+                    selectedCategory,
+                page:
+                    news.page + 1,
+            })
+        )
+    }
+
     return (
         <div className="flex min-h-screen bg-gray-50">
+
             {/* Sidebar */}
             <Sidebar
                 onSettingsClick={
@@ -319,6 +435,7 @@ function Dashboard({
             />
 
             <div className="flex min-w-0 flex-1 flex-col">
+
                 {/* Header */}
                 <Header
                     onSettingsClick={
@@ -346,6 +463,7 @@ function Dashboard({
                     {/* Search Results */}
                     {search.query.trim() && (
                         <section className="mb-12">
+
                             <div className="mb-4">
                                 <h2 className="text-xl font-semibold text-gray-900">
                                     Search Results
@@ -394,7 +512,7 @@ function Dashboard({
                                     />
                                 )}
 
-                            {/* Search Results */}
+                            {/* Search Results Grid */}
                             {search.status ===
                                 'success' &&
                                 searchItems.length >
@@ -441,6 +559,7 @@ function Dashboard({
                         id="personalized-feed"
                         className="mb-12 scroll-mt-6"
                     >
+
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 Personalized Feed
@@ -455,7 +574,7 @@ function Dashboard({
                             </p>
                         </div>
 
-                        {/* Loading */}
+                        {/* Initial Loading */}
                         {isInitialLoading && (
                             <ContentState
                                 type="loading"
@@ -475,7 +594,7 @@ function Dashboard({
                                 />
                             )}
 
-                        {/* Empty */}
+                        {/* No Content */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasNoContent && (
@@ -485,12 +604,15 @@ function Dashboard({
                                 />
                             )}
 
-                        {/* Unified Feed */}
+                        {/* Feed Content */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasContent && (
                                 <>
+
+                                    {/* Content Cards */}
                                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
                                         {personalizedFeed.map(
                                             (item) => {
                                                 const isFavorite =
@@ -522,13 +644,38 @@ function Dashboard({
                                                 )
                                             }
                                         )}
+
                                     </div>
+
+                                    {/* Load More News */}
+                                    {news.hasMore && (
+                                        <div className="mt-8 flex justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    loadMoreNews
+                                                }
+                                                disabled={
+                                                    news.status ===
+                                                    'loading'
+                                                }
+                                                className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {news.status ===
+                                                'loading'
+                                                    ? 'Loading...'
+                                                    : 'Load More News'}
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* News Error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
+
                                             <div className="flex flex-wrap items-center justify-between gap-3">
+
                                                 <div>
                                                     <p className="font-medium text-red-900">
                                                         News could not be loaded.
@@ -543,15 +690,18 @@ function Dashboard({
                                                     type="button"
                                                     onClick={() =>
                                                         dispatch(
-                                                            getNews(
-                                                                selectedCategory
-                                                            )
+                                                            getNews({
+                                                                category:
+                                                                    selectedCategory,
+                                                                page: 1,
+                                                            })
                                                         )
                                                     }
                                                     className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800"
                                                 >
                                                     Retry News
                                                 </button>
+
                                             </div>
                                         </div>
                                     )}
@@ -560,7 +710,9 @@ function Dashboard({
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
+
                                             <div className="flex flex-wrap items-center justify-between gap-3">
+
                                                 <div>
                                                     <p className="font-medium text-yellow-900">
                                                         Music recommendations could not be loaded.
@@ -584,6 +736,7 @@ function Dashboard({
                                                 >
                                                     Retry Music
                                                 </button>
+
                                             </div>
                                         </div>
                                     )}
@@ -592,7 +745,9 @@ function Dashboard({
                                     {social.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+
                                             <div className="flex flex-wrap items-center justify-between gap-3">
+
                                                 <div>
                                                     <p className="font-medium text-blue-900">
                                                         Social posts could not be loaded.
@@ -614,11 +769,14 @@ function Dashboard({
                                                 >
                                                     Retry Social
                                                 </button>
+
                                             </div>
                                         </div>
                                     )}
+
                                 </>
                             )}
+
                     </section>
 
                     {/* Trending */}
@@ -626,6 +784,7 @@ function Dashboard({
                         id="trending"
                         className="mb-12 scroll-mt-6"
                     >
+
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 Trending
@@ -644,6 +803,7 @@ function Dashboard({
                             />
                         ) : (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
                                 {trendingItems.map(
                                     (item) => {
                                         const isFavorite =
@@ -675,8 +835,10 @@ function Dashboard({
                                         )
                                     }
                                 )}
+
                             </div>
                         )}
+
                     </section>
 
                     {/* Favorites */}
@@ -684,6 +846,7 @@ function Dashboard({
                         id="favorites"
                         className="pb-8 scroll-mt-6"
                     >
+
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 Favorites
@@ -702,6 +865,7 @@ function Dashboard({
                             />
                         ) : (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
                                 {favorites.map(
                                     (item) => (
                                         <ContentCard
@@ -722,8 +886,10 @@ function Dashboard({
                                         />
                                     )
                                 )}
+
                             </div>
                         )}
+
                     </section>
 
                 </main>
