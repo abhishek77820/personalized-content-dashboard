@@ -1,4 +1,10 @@
-function Header() {
+interface HeaderProps {
+    onSettingsClick: () => void
+}
+
+function Header({
+    onSettingsClick,
+}: HeaderProps) {
     return (
         <header className="border-b border-gray-200 bg-white px-4 py-4 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -35,6 +41,7 @@ function Header() {
                     {/* Settings */}
                     <button
                         type="button"
+                        onClick={onSettingsClick}
                         aria-label="Open settings"
                         className="hidden rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:block"
                     >

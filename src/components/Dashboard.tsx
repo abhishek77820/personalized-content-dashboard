@@ -7,10 +7,7 @@ import ContentCard from './ContentCard'
 import ContentState from './ContentState'
 
 import type { ContentItem } from '../types/content'
-import type {
-    RootState,
-    AppDispatch,
-} from '../app/store'
+import type { RootState, AppDispatch } from '../app/store'
 
 import {
     addFavorite,
@@ -20,7 +17,13 @@ import {
 import { getNews } from '../features/news/newsSlice'
 import { getRecommendations } from '../features/recommendations/recommendationsSlice'
 
-function Dashboard() {
+interface DashboardProps {
+    onSettingsClick: () => void
+}
+
+function Dashboard({
+    onSettingsClick,
+}: DashboardProps) {
     const dispatch = useDispatch<AppDispatch>()
 
     const favorites = useSelector(
@@ -126,7 +129,9 @@ function Dashboard() {
     const retryAll = () => {
         dispatch(getNews(selectedCategory))
         dispatch(
-            getRecommendations(selectedCategory)
+            getRecommendations(
+                selectedCategory
+            )
         )
     }
 
@@ -135,7 +140,11 @@ function Dashboard() {
             <Sidebar />
 
             <div className="flex min-w-0 flex-1 flex-col">
-                <Header />
+                <Header
+                    onSettingsClick={
+                        onSettingsClick
+                    }
+                />
 
                 <main className="flex-1 p-4 sm:p-6">
 
@@ -146,7 +155,8 @@ function Dashboard() {
                         </h1>
 
                         <p className="mt-1 text-sm text-gray-500">
-                            Here is your personalized content.
+                            Here is your personalized
+                            content.
                         </p>
                     </section>
 
@@ -158,7 +168,11 @@ function Dashboard() {
                             </h2>
 
                             <p className="mt-1 text-sm text-gray-500">
-                                Latest {selectedCategory} news and music recommendations based on your preferences.
+                                Latest{' '}
+                                {selectedCategory}{' '}
+                                news and music
+                                recommendations based
+                                on your preferences.
                             </p>
                         </div>
 
@@ -200,7 +214,9 @@ function Dashboard() {
                                             (item) => {
                                                 const isFavorite =
                                                     favorites.some(
-                                                        (favorite) =>
+                                                        (
+                                                            favorite
+                                                        ) =>
                                                             favorite.id ===
                                                             item.id
                                                     )
@@ -227,7 +243,7 @@ function Dashboard() {
                                         )}
                                     </div>
 
-                                    {/* News error */}
+                                    {/* News Error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -238,7 +254,7 @@ function Dashboard() {
                                                     </p>
 
                                                     <p className="mt-1 text-sm text-red-700">
-                                                        The music recommendations are still available.
+                                                        Music recommendations are still available.
                                                     </p>
                                                 </div>
 
@@ -251,7 +267,7 @@ function Dashboard() {
                                                             )
                                                         )
                                                     }
-                                                    className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white"
+                                                    className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800"
                                                 >
                                                     Retry News
                                                 </button>
@@ -259,7 +275,7 @@ function Dashboard() {
                                         </div>
                                     )}
 
-                                    {/* Music error */}
+                                    {/* Music Error */}
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
@@ -270,7 +286,7 @@ function Dashboard() {
                                                     </p>
 
                                                     <p className="mt-1 text-sm text-yellow-700">
-                                                        The news feed is still available.
+                                                        News content is still available.
                                                     </p>
                                                 </div>
 
@@ -283,7 +299,7 @@ function Dashboard() {
                                                             )
                                                         )
                                                     }
-                                                    className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white"
+                                                    className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-700"
                                                 >
                                                     Retry Music
                                                 </button>
@@ -318,7 +334,9 @@ function Dashboard() {
                                         <ContentCard
                                             key={item.id}
                                             item={item}
-                                            isFavorite={true}
+                                            isFavorite={
+                                                true
+                                            }
                                             onFavorite={() =>
                                                 handleFavorite(
                                                     item
