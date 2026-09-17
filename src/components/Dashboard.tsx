@@ -141,6 +141,45 @@ function Dashboard({
         ...socialItems,
     ]
 
+    /*
+     * Trending content
+     *
+     * News and music use the current feed order.
+     * Social posts are ordered by views.
+     */
+    const trendingNews = newsItems.slice(0, 2)
+
+    const trendingMusic =
+        musicItems.slice(0, 2)
+
+    const trendingSocial = [
+        ...social.posts,
+    ]
+        .sort(
+            (first, second) =>
+                second.views - first.views
+        )
+        .slice(0, 2)
+        .map(
+            (post): ContentItem => ({
+                id: `social-trending-${post.id}`,
+                type: 'social',
+                title: post.title,
+                description: post.body,
+                imageUrl: '',
+                source: `User #${post.userId}`,
+                publishedAt: `${post.views} views`,
+                actionUrl: `https://dummyjson.com/posts/${post.id}`,
+                actionLabel: 'View Post',
+            })
+        )
+
+    const trendingItems = [
+        ...trendingNews,
+        ...trendingMusic,
+        ...trendingSocial,
+    ]
+
     const isInitialLoading =
         personalizedFeed.length === 0 &&
         (
@@ -150,7 +189,7 @@ function Dashboard({
             social.status === 'loading'
         )
 
-    const bothSourcesFailed =
+    const allSourcesFailed =
         news.status === 'error' &&
         recommendations.status === 'error' &&
         social.status === 'error'
@@ -218,7 +257,10 @@ function Dashboard({
                     </section>
 
                     {/* Personalized Feed */}
-                    <section className="mb-10">
+                    <section
+                        id="personalized-feed"
+                        className="mb-12"
+                    >
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 Personalized Feed
@@ -243,7 +285,7 @@ function Dashboard({
 
                         {/* All APIs failed */}
                         {!isInitialLoading &&
-                            bothSourcesFailed && (
+                            allSourcesFailed && (
                                 <ContentState
                                     type="error"
                                     message="Unable to load personalized content."
@@ -255,7 +297,7 @@ function Dashboard({
 
                         {/* Empty */}
                         {!isInitialLoading &&
-                            !bothSourcesFailed &&
+                            !allSourcesFailed &&
                             hasNoContent && (
                                 <ContentState
                                     type="empty"
@@ -265,7 +307,7 @@ function Dashboard({
 
                         {/* Unified Feed */}
                         {!isInitialLoading &&
-                            !bothSourcesFailed &&
+                            !allSourcesFailed &&
                             hasContent && (
                                 <>
                                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -302,7 +344,7 @@ function Dashboard({
                                         )}
                                     </div>
 
-                                    {/* News error */}
+                                    {/* News Error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -334,7 +376,7 @@ function Dashboard({
                                         </div>
                                     )}
 
-                                    {/* Music error */}
+                                    {/* Music Error */}
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
@@ -366,7 +408,7 @@ function Dashboard({
                                         </div>
                                     )}
 
-                                    {/* Social error */}
+                                    {/* Social Error */}
                                     {social.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -399,8 +441,68 @@ function Dashboard({
                             )}
                     </section>
 
+                    {/* Trending */}
+                    <section
+                        id="trending"
+                        className="mb-12"
+                    >
+                        <div className="mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900">
+                                Trending
+                            </h2>
+
+                            <p className="mt-1 text-sm text-gray-500">
+                                Popular content from your personalized sources.
+                            </p>
+                        </div>
+
+                        {trendingItems.length === 0 ? (
+                            <ContentState
+                                type="empty"
+                                message="No trending content available right now."
+                            />
+                        ) : (
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                {trendingItems.map(
+                                    (item) => {
+                                        const isFavorite =
+                                            favorites.some(
+                                                (
+                                                    favorite
+                                                ) =>
+                                                    favorite.id ===
+                                                    item.id
+                                            )
+
+                                        return (
+                                            <ContentCard
+                                                key={
+                                                    item.id
+                                                }
+                                                item={
+                                                    item
+                                                }
+                                                isFavorite={
+                                                    isFavorite
+                                                }
+                                                onFavorite={() =>
+                                                    handleFavorite(
+                                                        item
+                                                    )
+                                                }
+                                            />
+                                        )
+                                    }
+                                )}
+                            </div>
+                        )}
+                    </section>
+
                     {/* Favorites */}
-                    <section>
+                    <section
+                        id="favorites"
+                        className="pb-8"
+                    >
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 Favorites
