@@ -1,4 +1,24 @@
-function Sidebar() {
+interface SidebarProps {
+    onSettingsClick: () => void
+}
+
+function Sidebar({
+    onSettingsClick,
+}: SidebarProps) {
+    const scrollToSection = (
+        sectionId: string
+    ) => {
+        const section =
+            document.getElementById(sectionId)
+
+        if (section) {
+            section.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            })
+        }
+    }
+
     return (
         <aside className="hidden min-h-screen w-64 border-r border-gray-200 bg-white md:block">
             <div className="border-b border-gray-200 p-6">
@@ -16,7 +36,12 @@ function Sidebar() {
                     <li>
                         <button
                             type="button"
-                            className="w-full rounded-lg bg-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-900"
+                            onClick={() =>
+                                scrollToSection(
+                                    'personalized-feed'
+                                )
+                            }
+                            className="w-full rounded-lg bg-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-900 transition hover:bg-gray-200"
                         >
                             Dashboard
                         </button>
@@ -25,7 +50,12 @@ function Sidebar() {
                     <li>
                         <button
                             type="button"
-                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 hover:bg-gray-100"
+                            onClick={() =>
+                                scrollToSection(
+                                    'trending'
+                                )
+                            }
+                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 transition hover:bg-gray-100"
                         >
                             Trending
                         </button>
@@ -34,7 +64,12 @@ function Sidebar() {
                     <li>
                         <button
                             type="button"
-                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 hover:bg-gray-100"
+                            onClick={() =>
+                                scrollToSection(
+                                    'favorites'
+                                )
+                            }
+                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 transition hover:bg-gray-100"
                         >
                             Favorites
                         </button>
@@ -43,7 +78,10 @@ function Sidebar() {
                     <li>
                         <button
                             type="button"
-                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 hover:bg-gray-100"
+                            onClick={
+                                onSettingsClick
+                            }
+                            className="w-full rounded-lg px-4 py-3 text-left text-sm text-gray-600 transition hover:bg-gray-100"
                         >
                             Settings
                         </button>

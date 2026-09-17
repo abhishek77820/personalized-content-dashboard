@@ -141,13 +141,8 @@ function Dashboard({
         ...socialItems,
     ]
 
-    /*
-     * Trending content
-     *
-     * News and music use the current feed order.
-     * Social posts are ordered by views.
-     */
-    const trendingNews = newsItems.slice(0, 2)
+    const trendingNews =
+        newsItems.slice(0, 2)
 
     const trendingMusic =
         musicItems.slice(0, 2)
@@ -233,7 +228,11 @@ function Dashboard({
 
     return (
         <div className="flex min-h-screen bg-gray-50">
-            <Sidebar />
+            <Sidebar
+                onSettingsClick={
+                    onSettingsClick
+                }
+            />
 
             <div className="flex min-w-0 flex-1 flex-col">
                 <Header
@@ -259,7 +258,7 @@ function Dashboard({
                     {/* Personalized Feed */}
                     <section
                         id="personalized-feed"
-                        className="mb-12"
+                        className="mb-12 scroll-mt-6"
                     >
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
@@ -275,7 +274,6 @@ function Dashboard({
                             </p>
                         </div>
 
-                        {/* Loading */}
                         {isInitialLoading && (
                             <ContentState
                                 type="loading"
@@ -283,7 +281,6 @@ function Dashboard({
                             />
                         )}
 
-                        {/* All APIs failed */}
                         {!isInitialLoading &&
                             allSourcesFailed && (
                                 <ContentState
@@ -295,7 +292,6 @@ function Dashboard({
                                 />
                             )}
 
-                        {/* Empty */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasNoContent && (
@@ -305,7 +301,6 @@ function Dashboard({
                                 />
                             )}
 
-                        {/* Unified Feed */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasContent && (
@@ -344,7 +339,6 @@ function Dashboard({
                                         )}
                                     </div>
 
-                                    {/* News Error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -376,7 +370,6 @@ function Dashboard({
                                         </div>
                                     )}
 
-                                    {/* Music Error */}
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
@@ -408,7 +401,6 @@ function Dashboard({
                                         </div>
                                     )}
 
-                                    {/* Social Error */}
                                     {social.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -444,7 +436,7 @@ function Dashboard({
                     {/* Trending */}
                     <section
                         id="trending"
-                        className="mb-12"
+                        className="mb-12 scroll-mt-6"
                     >
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
@@ -501,7 +493,7 @@ function Dashboard({
                     {/* Favorites */}
                     <section
                         id="favorites"
-                        className="pb-8"
+                        className="pb-8 scroll-mt-6"
                     >
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-900">
