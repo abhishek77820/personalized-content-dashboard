@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ContentItem } from '../types/content'
 
 interface ContentCardProps {
@@ -11,14 +12,43 @@ function ContentCard({
     isFavorite = false,
     onFavorite,
 }: ContentCardProps) {
+    const [imageError, setImageError] = useState(false)
+
+    const showImage =
+        Boolean(item.imageUrl) && !imageError
+
+    const fallbackIcon =
+        item.type === 'music'
+            ? '🎵'
+            : item.type === 'social'
+              ? '💬'
+              : '📰'
+
     return (
         <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
             <div className="aspect-video overflow-hidden bg-gray-100">
-                <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                />
+                {showImage ? (
+                    <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        onError={() =>
+                            setImageError(true)
+                        }
+                        className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                ) : (
+                    <div className="flex h-full items-center justify-center bg-gray-100">
+                        <div className="text-center">
+                            <div className="text-4xl">
+                                {fallbackIcon}
+                            </div>
+
+                            <p className="mt-2 text-sm font-medium text-gray-500">
+                                No image available
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="p-5">
@@ -59,20 +89,37 @@ function ContentCard({
 
                     <button
                         type="button"
-                        onClick={() => onFavorite?.(item.id)}
+                        onClick={() =>
+                            onFavorite?.(item.id)
+                        }
                         aria-label={
                             isFavorite
                                 ? `Remove ${item.title} from favorites`
                                 : `Add ${item.title} to favorites`
                         }
-                        className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition ${isFavorite
+                        className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                            isFavorite
                                 ? 'bg-gray-900 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                        }`}
                     >
-                        {isFavorite ? '★ Saved' : '☆ Save'}
+                        {isFavorite
+                            ? '★ Saved'
+                            : '☆ Save'}
                     </button>
                 </div>
+
+                {item.actionUrl &&
+                    item.actionLabel && (
+                        <a
+                            href={item.actionUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-4 inline-block text-sm font-medium text-gray-900 underline hover:text-gray-600"
+                        >
+                            {item.actionLabel} →
+                        </a>
+                    )}
             </div>
         </article>
     )
