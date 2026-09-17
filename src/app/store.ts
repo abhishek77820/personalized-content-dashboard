@@ -6,6 +6,7 @@ import newsReducer from '../features/news/newsSlice'
 import recommendationsReducer from '../features/recommendations/recommendationsSlice'
 import socialReducer from '../features/social/socialSlice'
 import searchReducer from '../features/search/searchSlice'
+import feedOrderReducer from '../features/feed/feedOrderSlice'
 
 export const store = configureStore({
     reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
         recommendations: recommendationsReducer,
         social: socialReducer,
         search: searchReducer,
+        feedOrder: feedOrderReducer,
     },
 })
 
