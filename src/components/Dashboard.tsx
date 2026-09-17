@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Header from './Header'
@@ -17,11 +17,22 @@ import {
     removeFavorite,
 } from '../features/favorites/favoritesSlice'
 
-import { getNews } from '../features/news/newsSlice'
+import {
+    getNews,
+} from '../features/news/newsSlice'
 
-import { getRecommendations } from '../features/recommendations/recommendationsSlice'
+import {
+    getRecommendations,
+} from '../features/recommendations/recommendationsSlice'
 
-import { getSocialPosts } from '../features/social/socialSlice'
+import {
+    getSocialPosts,
+} from '../features/social/socialSlice'
+
+import {
+    searchContentThunk,
+    clearSearch,
+} from '../features/search/searchSlice'
 
 interface DashboardProps {
     onSettingsClick: () => void
@@ -48,6 +59,10 @@ function Dashboard({
 
     const social = useSelector(
         (state: RootState) => state.social
+    )
+
+    const search = useSelector(
+        (state: RootState) => state.search
     )
 
     const categories = useSelector(
@@ -91,6 +106,18 @@ function Dashboard({
         }
     }
 
+    const handleSearch = useCallback(
+    (query: string) => {
+        if (!query.trim()) {
+            dispatch(clearSearch())
+            return
+        }
+
+        dispatch(searchContentThunk(query))
+    },
+    [dispatch]
+)
+
     const newsItems: ContentItem[] =
         news.articles.map((article) => ({
             id: article.id,
@@ -99,12 +126,16 @@ function Dashboard({
             description:
                 article.description ||
                 'No description available.',
-            imageUrl: article.image || '',
+            imageUrl:
+                article.image || '',
             source:
                 article.author || 'News',
-            publishedAt: article.published,
-            actionUrl: article.url,
-            actionLabel: 'Read More',
+            publishedAt:
+                article.published,
+            actionUrl:
+                article.url,
+            actionLabel:
+                'Read More',
         }))
 
     const musicItems: ContentItem[] =
@@ -113,12 +144,16 @@ function Dashboard({
                 id: `music-${item.id}`,
                 type: 'music',
                 title: item.title,
-                description: `${item.artist} • ${item.album}`,
-                imageUrl: item.image,
+                description:
+                    `${item.artist} • ${item.album}`,
+                imageUrl:
+                    item.image,
                 source:
                     item.genre || 'Music',
-                actionUrl: item.url,
-                actionLabel: 'Listen Now',
+                actionUrl:
+                    item.url,
+                actionLabel:
+                    'Listen Now',
             })
         )
 
@@ -129,10 +164,14 @@ function Dashboard({
             title: post.title,
             description: post.body,
             imageUrl: '',
-            source: `User #${post.userId}`,
-            publishedAt: `${post.views} views`,
-            actionUrl: `https://dummyjson.com/posts/${post.id}`,
-            actionLabel: 'View Post',
+            source:
+                `User #${post.userId}`,
+            publishedAt:
+                `${post.views} views`,
+            actionUrl:
+                `https://dummyjson.com/posts/${post.id}`,
+            actionLabel:
+                'View Post',
         }))
 
     const personalizedFeed = [
@@ -141,6 +180,18 @@ function Dashboard({
         ...socialItems,
     ]
 
+    /*
+     * Trending
+     *
+     * News:
+     * first 2 current news items
+     *
+     * Music:
+     * first 2 recommendation items
+     *
+     * Social:
+     * top 2 posts by views
+     */
     const trendingNews =
         newsItems.slice(0, 2)
 
@@ -162,10 +213,14 @@ function Dashboard({
                 title: post.title,
                 description: post.body,
                 imageUrl: '',
-                source: `User #${post.userId}`,
-                publishedAt: `${post.views} views`,
-                actionUrl: `https://dummyjson.com/posts/${post.id}`,
-                actionLabel: 'View Post',
+                source:
+                    `User #${post.userId}`,
+                publishedAt:
+                    `${post.views} views`,
+                actionUrl:
+                    `https://dummyjson.com/posts/${post.id}`,
+                actionLabel:
+                    'View Post',
             })
         )
 
@@ -174,6 +229,32 @@ function Dashboard({
         ...trendingMusic,
         ...trendingSocial,
     ]
+
+    /*
+     * Convert search results into the common
+     * ContentItem structure used by ContentCard.
+     */
+    const searchItems: ContentItem[] =
+        search.results.map((item) => ({
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            description:
+                item.description ||
+                'No description available.',
+            imageUrl:
+                item.imageUrl || '',
+            source:
+                item.source,
+            publishedAt:
+                item.publishedAt,
+            rating:
+                item.rating,
+            actionUrl:
+                item.actionUrl,
+            actionLabel:
+                item.actionLabel,
+        }))
 
     const isInitialLoading =
         personalizedFeed.length === 0 &&
@@ -223,11 +304,14 @@ function Dashboard({
             )
         )
 
-        dispatch(getSocialPosts())
+        dispatch(
+            getSocialPosts()
+        )
     }
 
     return (
         <div className="flex min-h-screen bg-gray-50">
+            {/* Sidebar */}
             <Sidebar
                 onSettingsClick={
                     onSettingsClick
@@ -235,9 +319,13 @@ function Dashboard({
             />
 
             <div className="flex min-w-0 flex-1 flex-col">
+                {/* Header */}
                 <Header
                     onSettingsClick={
                         onSettingsClick
+                    }
+                    onSearch={
+                        handleSearch
                     }
                 />
 
@@ -254,6 +342,99 @@ function Dashboard({
                             content.
                         </p>
                     </section>
+
+                    {/* Search Results */}
+                    {search.query.trim() && (
+                        <section className="mb-12">
+                            <div className="mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900">
+                                    Search Results
+                                </h2>
+
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Results for "
+                                    {search.query}"
+                                </p>
+                            </div>
+
+                            {/* Search Loading */}
+                            {search.status ===
+                                'loading' && (
+                                <ContentState
+                                    type="loading"
+                                    message="Searching content..."
+                                />
+                            )}
+
+                            {/* Search Error */}
+                            {search.status ===
+                                'error' && (
+                                <ContentState
+                                    type="error"
+                                    message={
+                                        search.error ||
+                                        'Unable to complete search.'
+                                    }
+                                    onRetry={() =>
+                                        handleSearch(
+                                            search.query
+                                        )
+                                    }
+                                />
+                            )}
+
+                            {/* Search Empty */}
+                            {search.status ===
+                                'success' &&
+                                searchItems.length ===
+                                    0 && (
+                                    <ContentState
+                                        type="empty"
+                                        message={`No content found for "${search.query}".`}
+                                    />
+                                )}
+
+                            {/* Search Results */}
+                            {search.status ===
+                                'success' &&
+                                searchItems.length >
+                                    0 && (
+                                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                        {searchItems.map(
+                                            (item) => {
+                                                const isFavorite =
+                                                    favorites.some(
+                                                        (
+                                                            favorite
+                                                        ) =>
+                                                            favorite.id ===
+                                                            item.id
+                                                    )
+
+                                                return (
+                                                    <ContentCard
+                                                        key={
+                                                            item.id
+                                                        }
+                                                        item={
+                                                            item
+                                                        }
+                                                        isFavorite={
+                                                            isFavorite
+                                                        }
+                                                        onFavorite={() =>
+                                                            handleFavorite(
+                                                                item
+                                                            )
+                                                        }
+                                                    />
+                                                )
+                                            }
+                                        )}
+                                    </div>
+                                )}
+                        </section>
+                    )}
 
                     {/* Personalized Feed */}
                     <section
@@ -274,6 +455,7 @@ function Dashboard({
                             </p>
                         </div>
 
+                        {/* Loading */}
                         {isInitialLoading && (
                             <ContentState
                                 type="loading"
@@ -281,6 +463,7 @@ function Dashboard({
                             />
                         )}
 
+                        {/* All Sources Failed */}
                         {!isInitialLoading &&
                             allSourcesFailed && (
                                 <ContentState
@@ -292,6 +475,7 @@ function Dashboard({
                                 />
                             )}
 
+                        {/* Empty */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasNoContent && (
@@ -301,6 +485,7 @@ function Dashboard({
                                 />
                             )}
 
+                        {/* Unified Feed */}
                         {!isInitialLoading &&
                             !allSourcesFailed &&
                             hasContent && (
@@ -339,6 +524,7 @@ function Dashboard({
                                         )}
                                     </div>
 
+                                    {/* News Error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -370,6 +556,7 @@ function Dashboard({
                                         </div>
                                     )}
 
+                                    {/* Music Error */}
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
@@ -401,6 +588,7 @@ function Dashboard({
                                         </div>
                                     )}
 
+                                    {/* Social Error */}
                                     {social.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -448,7 +636,8 @@ function Dashboard({
                             </p>
                         </div>
 
-                        {trendingItems.length === 0 ? (
+                        {trendingItems.length ===
+                        0 ? (
                             <ContentState
                                 type="empty"
                                 message="No trending content available right now."
@@ -505,7 +694,8 @@ function Dashboard({
                             </p>
                         </div>
 
-                        {favorites.length === 0 ? (
+                        {favorites.length ===
+                        0 ? (
                             <ContentState
                                 type="empty"
                                 message="You have not saved any content yet."
