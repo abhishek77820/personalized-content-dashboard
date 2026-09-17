@@ -4,6 +4,7 @@ import preferencesReducer from '../features/preferences/preferencesSlice'
 import favoritesReducer from '../features/favorites/favoritesSlice'
 import newsReducer from '../features/news/newsSlice'
 import recommendationsReducer from '../features/recommendations/recommendationsSlice'
+import socialReducer from '../features/social/socialSlice'
 
 export const store = configureStore({
     reducer: {
@@ -11,9 +12,11 @@ export const store = configureStore({
         favorites: favoritesReducer,
         news: newsReducer,
         recommendations: recommendationsReducer,
+        social: socialReducer,
     },
 })
 
-export type RootState = ReturnType<typeof store.getState>
+export type RootState =
+    ReturnType<typeof store.getState>
 
 export type AppDispatch = typeof store.dispatch

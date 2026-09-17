@@ -7,7 +7,10 @@ import ContentCard from './ContentCard'
 import ContentState from './ContentState'
 
 import type { ContentItem } from '../types/content'
-import type { RootState, AppDispatch } from '../app/store'
+import type {
+    RootState,
+    AppDispatch,
+} from '../app/store'
 
 import {
     addFavorite,
@@ -15,7 +18,10 @@ import {
 } from '../features/favorites/favoritesSlice'
 
 import { getNews } from '../features/news/newsSlice'
+
 import { getRecommendations } from '../features/recommendations/recommendationsSlice'
+
+import { getSocialPosts } from '../features/social/socialSlice'
 
 interface DashboardProps {
     onSettingsClick: () => void
@@ -27,7 +33,8 @@ function Dashboard({
     const dispatch = useDispatch<AppDispatch>()
 
     const favorites = useSelector(
-        (state: RootState) => state.favorites.items
+        (state: RootState) =>
+            state.favorites.items
     )
 
     const news = useSelector(
@@ -37,6 +44,10 @@ function Dashboard({
     const recommendations = useSelector(
         (state: RootState) =>
             state.recommendations
+    )
+
+    const social = useSelector(
+        (state: RootState) => state.social
     )
 
     const categories = useSelector(
@@ -49,21 +60,32 @@ function Dashboard({
 
     useEffect(() => {
         dispatch(getNews(selectedCategory))
+
         dispatch(
-            getRecommendations(selectedCategory)
+            getRecommendations(
+                selectedCategory
+            )
         )
-    }, [dispatch, selectedCategory])
+
+        dispatch(getSocialPosts())
+    }, [
+        dispatch,
+        selectedCategory,
+    ])
 
     const handleFavorite = (
         item: ContentItem
     ) => {
-        const alreadyFavorite = favorites.some(
-            (favorite) =>
-                favorite.id === item.id
-        )
+        const alreadyFavorite =
+            favorites.some(
+                (favorite) =>
+                    favorite.id === item.id
+            )
 
         if (alreadyFavorite) {
-            dispatch(removeFavorite(item.id))
+            dispatch(
+                removeFavorite(item.id)
+            )
         } else {
             dispatch(addFavorite(item))
         }
@@ -86,53 +108,88 @@ function Dashboard({
         }))
 
     const musicItems: ContentItem[] =
-        recommendations.items.map((item) => ({
-            id: `music-${item.id}`,
-            type: 'music',
-            title: item.title,
-            description: `${item.artist} • ${item.album}`,
-            imageUrl: item.image,
-            source: item.genre || 'Music',
-            actionUrl: item.url,
-            actionLabel: 'Listen Now',
+        recommendations.items.map(
+            (item) => ({
+                id: `music-${item.id}`,
+                type: 'music',
+                title: item.title,
+                description: `${item.artist} • ${item.album}`,
+                imageUrl: item.image,
+                source:
+                    item.genre || 'Music',
+                actionUrl: item.url,
+                actionLabel: 'Listen Now',
+            })
+        )
+
+    const socialItems: ContentItem[] =
+        social.posts.map((post) => ({
+            id: `social-${post.id}`,
+            type: 'social',
+            title: post.title,
+            description: post.body,
+            imageUrl: '',
+            source: `User #${post.userId}`,
+            publishedAt: `${post.views} views`,
+            actionUrl: `https://dummyjson.com/posts/${post.id}`,
+            actionLabel: 'View Post',
         }))
 
     const personalizedFeed = [
         ...newsItems,
         ...musicItems,
+        ...socialItems,
     ]
 
     const isInitialLoading =
         personalizedFeed.length === 0 &&
-        (news.status === 'loading' ||
+        (
+            news.status === 'loading' ||
             recommendations.status ===
-                'loading')
+                'loading' ||
+            social.status === 'loading'
+        )
 
     const bothSourcesFailed =
         news.status === 'error' &&
-        recommendations.status === 'error'
+        recommendations.status === 'error' &&
+        social.status === 'error'
 
     const hasContent =
         personalizedFeed.length > 0
 
-    const bothSourcesFinished =
-        (news.status === 'success' ||
-            news.status === 'error') &&
-        (recommendations.status === 'success' ||
-            recommendations.status === 'error')
+    const allSourcesFinished =
+        (
+            news.status === 'success' ||
+            news.status === 'error'
+        ) &&
+        (
+            recommendations.status ===
+                'success' ||
+            recommendations.status ===
+                'error'
+        ) &&
+        (
+            social.status === 'success' ||
+            social.status === 'error'
+        )
 
     const hasNoContent =
-        bothSourcesFinished &&
-        !hasContent &&
-        !bothSourcesFailed
+        allSourcesFinished &&
+        !hasContent
 
     const retryAll = () => {
-        dispatch(getNews(selectedCategory))
+        dispatch(
+            getNews(selectedCategory)
+        )
+
         dispatch(
             getRecommendations(
                 selectedCategory
             )
         )
+
+        dispatch(getSocialPosts())
     }
 
     return (
@@ -170,9 +227,9 @@ function Dashboard({
                             <p className="mt-1 text-sm text-gray-500">
                                 Latest{' '}
                                 {selectedCategory}{' '}
-                                news and music
-                                recommendations based
-                                on your preferences.
+                                news, music and social
+                                content based on your
+                                preferences.
                             </p>
                         </div>
 
@@ -184,13 +241,15 @@ function Dashboard({
                             />
                         )}
 
-                        {/* Both APIs failed */}
+                        {/* All APIs failed */}
                         {!isInitialLoading &&
                             bothSourcesFailed && (
                                 <ContentState
                                     type="error"
-                                    message="Unable to load news and music recommendations."
-                                    onRetry={retryAll}
+                                    message="Unable to load personalized content."
+                                    onRetry={
+                                        retryAll
+                                    }
                                 />
                             )}
 
@@ -243,7 +302,7 @@ function Dashboard({
                                         )}
                                     </div>
 
-                                    {/* News Error */}
+                                    {/* News error */}
                                     {news.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -254,7 +313,7 @@ function Dashboard({
                                                     </p>
 
                                                     <p className="mt-1 text-sm text-red-700">
-                                                        Music recommendations are still available.
+                                                        Other personalized content is still available.
                                                     </p>
                                                 </div>
 
@@ -275,7 +334,7 @@ function Dashboard({
                                         </div>
                                     )}
 
-                                    {/* Music Error */}
+                                    {/* Music error */}
                                     {recommendations.status ===
                                         'error' && (
                                         <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
@@ -286,7 +345,7 @@ function Dashboard({
                                                     </p>
 
                                                     <p className="mt-1 text-sm text-yellow-700">
-                                                        News content is still available.
+                                                        Other personalized content is still available.
                                                     </p>
                                                 </div>
 
@@ -302,6 +361,36 @@ function Dashboard({
                                                     className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-700"
                                                 >
                                                     Retry Music
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Social error */}
+                                    {social.status ===
+                                        'error' && (
+                                        <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <div>
+                                                    <p className="font-medium text-blue-900">
+                                                        Social posts could not be loaded.
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm text-blue-700">
+                                                        Other personalized content is still available.
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        dispatch(
+                                                            getSocialPosts()
+                                                        )
+                                                    }
+                                                    className="rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
+                                                >
+                                                    Retry Social
                                                 </button>
                                             </div>
                                         </div>
@@ -332,8 +421,12 @@ function Dashboard({
                                 {favorites.map(
                                     (item) => (
                                         <ContentCard
-                                            key={item.id}
-                                            item={item}
+                                            key={
+                                                item.id
+                                            }
+                                            item={
+                                                item
+                                            }
                                             isFavorite={
                                                 true
                                             }
