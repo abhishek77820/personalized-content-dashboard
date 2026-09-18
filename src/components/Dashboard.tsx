@@ -15,6 +15,7 @@ import Header from './Header'
 import Sidebar from './Sidebar'
 import ContentCard from './ContentCard'
 import ContentState from './ContentState'
+import ContentSkeleton from './ContentSkeleton'
 import DraggableContentCard from './DraggableContentCard'
 
 import type { ContentItem } from '../types/content'
@@ -58,7 +59,8 @@ interface DashboardProps {
 function Dashboard({
     onSettingsClick,
 }: DashboardProps) {
-    const dispatch = useDispatch<AppDispatch>()
+    const dispatch =
+        useDispatch<AppDispatch>()
 
     const favorites = useSelector(
         (state: RootState) =>
@@ -246,62 +248,65 @@ function Dashboard({
      * Create unified feed
      * according to saved order.
      */
-    const personalizedFeed = useMemo(() => {
-        const allItems = [
-            ...newsItems,
-            ...musicItems,
-            ...socialItems,
-        ]
+    const personalizedFeed =
+        useMemo(() => {
+            const allItems = [
+                ...newsItems,
+                ...musicItems,
+                ...socialItems,
+            ]
 
-        if (feedOrderIds.length === 0) {
-            return allItems
-        }
+            if (
+                feedOrderIds.length === 0
+            ) {
+                return allItems
+            }
 
-        const itemMap = new Map(
-            allItems.map((item) => [
-                item.id,
-                item,
-            ])
-        )
-
-        const orderedItems =
-            feedOrderIds
-                .map((id) =>
-                    itemMap.get(id)
-                )
-                .filter(
-                    (
-                        item
-                    ): item is ContentItem =>
-                        item !== undefined
-                )
-
-        const orderedIds =
-            new Set(
-                orderedItems.map(
-                    (item) =>
-                        item.id
-                )
+            const itemMap = new Map(
+                allItems.map((item) => [
+                    item.id,
+                    item,
+                ])
             )
 
-        const newItems =
-            allItems.filter(
-                (item) =>
-                    !orderedIds.has(
-                        item.id
+            const orderedItems =
+                feedOrderIds
+                    .map((id) =>
+                        itemMap.get(id)
                     )
-            )
+                    .filter(
+                        (
+                            item
+                        ): item is ContentItem =>
+                            item !== undefined
+                    )
 
-        return [
-            ...orderedItems,
-            ...newItems,
-        ]
-    }, [
-        newsItems,
-        musicItems,
-        socialItems,
-        feedOrderIds,
-    ])
+            const orderedIds =
+                new Set(
+                    orderedItems.map(
+                        (item) =>
+                            item.id
+                    )
+                )
+
+            const newItems =
+                allItems.filter(
+                    (item) =>
+                        !orderedIds.has(
+                            item.id
+                        )
+                )
+
+            return [
+                ...orderedItems,
+                ...newItems,
+            ]
+        }, [
+            newsItems,
+            musicItems,
+            socialItems,
+            feedOrderIds,
+        ])
 
     /*
      * Keep newly loaded cards inside
@@ -322,7 +327,9 @@ function Dashboard({
         const newIds =
             currentIds.filter(
                 (id) =>
-                    !feedOrderIds.includes(id)
+                    !feedOrderIds.includes(
+                        id
+                    )
             )
 
         const updatedOrder = [
@@ -365,7 +372,7 @@ function Dashboard({
         musicItems.slice(0, 2)
 
     /*
-     * Trending social posts
+     * Trending social
      */
     const trendingSocial = [
         ...social.posts,
@@ -430,7 +437,7 @@ function Dashboard({
         )
 
     /*
-     * Initial loading state
+     * Initial loading
      */
     const isInitialLoading =
         personalizedFeed.length === 0 &&
@@ -481,7 +488,7 @@ function Dashboard({
         !hasContent
 
     /*
-     * Retry all content sources
+     * Retry all content
      */
     const retryAll = () => {
         dispatch(resetNews())
@@ -506,7 +513,7 @@ function Dashboard({
     }
 
     /*
-     * Load next news page
+     * Load more news
      */
     const loadMoreNews = () => {
         if (
@@ -531,7 +538,7 @@ function Dashboard({
         <DndProvider
             backend={HTML5Backend}
         >
-            <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]">
+            <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)] transition-colors duration-200">
 
                 {/* Sidebar */}
                 <Sidebar
@@ -555,7 +562,7 @@ function Dashboard({
                     <main className="flex-1 p-4 sm:p-6">
 
                         {/* Welcome */}
-                        <section className="mb-8">
+                        <section className="mb-8 animate-fade-up">
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 Welcome Back 👋
                             </h1>
@@ -568,7 +575,7 @@ function Dashboard({
 
                         {/* Search Results */}
                         {search.query.trim() && (
-                            <section className="mb-12">
+                            <section className="mb-12 animate-fade-up">
 
                                 <div className="mb-4">
                                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -581,14 +588,30 @@ function Dashboard({
                                     </p>
                                 </div>
 
+                                {/* Search Loading */}
                                 {search.status ===
                                     'loading' && (
-                                    <ContentState
-                                        type="loading"
-                                        message="Searching content..."
-                                    />
+                                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                        {Array.from(
+                                            {
+                                                length: 3,
+                                            }
+                                        ).map(
+                                            (
+                                                _,
+                                                index
+                                            ) => (
+                                                <ContentSkeleton
+                                                    key={
+                                                        index
+                                                    }
+                                                />
+                                            )
+                                        )}
+                                    </div>
                                 )}
 
+                                {/* Search Error */}
                                 {search.status ===
                                     'error' && (
                                     <ContentState
@@ -605,6 +628,7 @@ function Dashboard({
                                     />
                                 )}
 
+                                {/* Search Empty */}
                                 {search.status ===
                                     'success' &&
                                     searchItems.length ===
@@ -615,6 +639,7 @@ function Dashboard({
                                         />
                                     )}
 
+                                {/* Search Results */}
                                 {search.status ===
                                     'success' &&
                                     searchItems.length >
@@ -622,7 +647,10 @@ function Dashboard({
                                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
                                             {searchItems.map(
-                                                (item) => {
+                                                (
+                                                    item,
+                                                    index
+                                                ) => {
                                                     const isFavorite =
                                                         favorites.some(
                                                             (
@@ -633,22 +661,29 @@ function Dashboard({
                                                         )
 
                                                     return (
-                                                        <ContentCard
+                                                        <div
                                                             key={
                                                                 item.id
                                                             }
-                                                            item={
-                                                                item
-                                                            }
-                                                            isFavorite={
-                                                                isFavorite
-                                                            }
-                                                            onFavorite={() =>
-                                                                handleFavorite(
+                                                            className="animate-fade-up"
+                                                            style={{
+                                                                animationDelay: `${index * 70}ms`,
+                                                            }}
+                                                        >
+                                                            <ContentCard
+                                                                item={
                                                                     item
-                                                                )
-                                                            }
-                                                        />
+                                                                }
+                                                                isFavorite={
+                                                                    isFavorite
+                                                                }
+                                                                onFavorite={() =>
+                                                                    handleFavorite(
+                                                                        item
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
                                                     )
                                                 }
                                             )}
@@ -665,7 +700,7 @@ function Dashboard({
                             className="mb-12 scroll-mt-6"
                         >
 
-                            <div className="mb-4">
+                            <div className="mb-4 animate-fade-up">
                                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Personalized Feed
                                 </h2>
@@ -679,12 +714,26 @@ function Dashboard({
                                 </p>
                             </div>
 
-                            {/* Initial Loading */}
+                            {/* Loading Skeleton */}
                             {isInitialLoading && (
-                                <ContentState
-                                    type="loading"
-                                    message="Loading your personalized feed..."
-                                />
+                                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {Array.from(
+                                        {
+                                            length: 6,
+                                        }
+                                    ).map(
+                                        (
+                                            _,
+                                            index
+                                        ) => (
+                                            <ContentSkeleton
+                                                key={
+                                                    index
+                                                }
+                                            />
+                                        )
+                                    )}
+                                </div>
                             )}
 
                             {/* All APIs failed */}
@@ -699,7 +748,7 @@ function Dashboard({
                                     />
                                 )}
 
-                            {/* No content */}
+                            {/* No Content */}
                             {!isInitialLoading &&
                                 !allSourcesFailed &&
                                 hasNoContent && (
@@ -719,7 +768,10 @@ function Dashboard({
                                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
                                             {personalizedFeed.map(
-                                                (item) => {
+                                                (
+                                                    item,
+                                                    index
+                                                ) => {
                                                     const isFavorite =
                                                         favorites.some(
                                                             (
@@ -730,31 +782,38 @@ function Dashboard({
                                                         )
 
                                                     return (
-                                                        <DraggableContentCard
+                                                        <div
                                                             key={
                                                                 item.id
                                                             }
-                                                            item={
-                                                                item
-                                                            }
-                                                            isFavorite={
-                                                                isFavorite
-                                                            }
-                                                            onFavorite={() =>
-                                                                handleFavorite(
+                                                            className="animate-fade-up"
+                                                            style={{
+                                                                animationDelay: `${index * 70}ms`,
+                                                            }}
+                                                        >
+                                                            <DraggableContentCard
+                                                                item={
                                                                     item
-                                                                )
-                                                            }
-                                                        />
+                                                                }
+                                                                isFavorite={
+                                                                    isFavorite
+                                                                }
+                                                                onFavorite={() =>
+                                                                    handleFavorite(
+                                                                        item
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
                                                     )
                                                 }
                                             )}
 
                                         </div>
 
-                                        {/* Load More News */}
+                                        {/* Load More */}
                                         {news.hasMore && (
-                                            <div className="mt-8 flex justify-center">
+                                            <div className="mt-8 flex justify-center animate-fade-up">
                                                 <button
                                                     type="button"
                                                     onClick={
@@ -764,7 +823,7 @@ function Dashboard({
                                                         news.status ===
                                                         'loading'
                                                     }
-                                                    className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+                                                    className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
                                                 >
                                                     {news.status ===
                                                     'loading'
@@ -802,7 +861,7 @@ function Dashboard({
                                                                 })
                                                             )
                                                         }
-                                                        className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800 dark:bg-red-800 dark:hover:bg-red-700"
+                                                        className="rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-red-800 dark:bg-red-800 dark:hover:bg-red-700"
                                                     >
                                                         Retry News
                                                     </button>
@@ -837,7 +896,7 @@ function Dashboard({
                                                                 )
                                                             )
                                                         }
-                                                        className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600"
+                                                        className="rounded-lg bg-yellow-800 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600"
                                                     >
                                                         Retry Music
                                                     </button>
@@ -870,7 +929,7 @@ function Dashboard({
                                                                 getSocialPosts()
                                                             )
                                                         }
-                                                        className="rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-700"
+                                                        className="rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-blue-800 dark:bg-blue-800 dark:hover:bg-blue-700"
                                                     >
                                                         Retry Social
                                                     </button>
@@ -890,7 +949,7 @@ function Dashboard({
                             className="mb-12 scroll-mt-6"
                         >
 
-                            <div className="mb-4">
+                            <div className="mb-4 animate-fade-up">
                                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Trending
                                 </h2>
@@ -910,7 +969,10 @@ function Dashboard({
                                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
                                     {trendingItems.map(
-                                        (item) => {
+                                        (
+                                            item,
+                                            index
+                                        ) => {
                                             const isFavorite =
                                                 favorites.some(
                                                     (
@@ -921,22 +983,29 @@ function Dashboard({
                                                 )
 
                                             return (
-                                                <ContentCard
+                                                <div
                                                     key={
                                                         item.id
                                                     }
-                                                    item={
-                                                        item
-                                                    }
-                                                    isFavorite={
-                                                        isFavorite
-                                                    }
-                                                    onFavorite={() =>
-                                                        handleFavorite(
+                                                    className="animate-fade-up"
+                                                    style={{
+                                                        animationDelay: `${index * 70}ms`,
+                                                    }}
+                                                >
+                                                    <ContentCard
+                                                        item={
                                                             item
-                                                        )
-                                                    }
-                                                />
+                                                        }
+                                                        isFavorite={
+                                                            isFavorite
+                                                        }
+                                                        onFavorite={() =>
+                                                            handleFavorite(
+                                                                item
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
                                             )
                                         }
                                     )}
@@ -952,7 +1021,7 @@ function Dashboard({
                             className="pb-8 scroll-mt-6"
                         >
 
-                            <div className="mb-4">
+                            <div className="mb-4 animate-fade-up">
                                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Favorites
                                 </h2>
@@ -972,23 +1041,33 @@ function Dashboard({
                                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
                                     {favorites.map(
-                                        (item) => (
-                                            <ContentCard
+                                        (
+                                            item,
+                                            index
+                                        ) => (
+                                            <div
                                                 key={
                                                     item.id
                                                 }
-                                                item={
-                                                    item
-                                                }
-                                                isFavorite={
-                                                    true
-                                                }
-                                                onFavorite={() =>
-                                                    handleFavorite(
+                                                className="animate-fade-up"
+                                                style={{
+                                                    animationDelay: `${index * 70}ms`,
+                                                }}
+                                            >
+                                                <ContentCard
+                                                    item={
                                                         item
-                                                    )
-                                                }
-                                            />
+                                                    }
+                                                    isFavorite={
+                                                        true
+                                                    }
+                                                    onFavorite={() =>
+                                                        handleFavorite(
+                                                            item
+                                                        )
+                                                    }
+                                                />
+                                            </div>
                                         )
                                     )}
 

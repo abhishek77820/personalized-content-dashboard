@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Dark mode is controlled by the .dark class
- * instead of the operating system preference.
+ * Dark mode is controlled by the .dark class.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -34,4 +33,74 @@ body {
     transition:
         background-color 200ms ease,
         color 200ms ease;
+}
+
+/*
+ * Card entrance animation
+ */
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-up {
+    animation: fade-up 450ms ease-out both;
+}
+
+/*
+ * Skeleton shimmer animation
+ */
+@keyframes shimmer {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+.animate-shimmer {
+    background: linear-gradient(
+        90deg,
+        #f3f4f6 25%,
+        #e5e7eb 37%,
+        #f3f4f6 63%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .animate-shimmer {
+    background: linear-gradient(
+        90deg,
+        #374151 25%,
+        #4b5563 37%,
+        #374151 63%
+    );
+    background-size: 200% 100%;
+}
+
+/*
+ * Respect users who prefer reduced motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
