@@ -245,8 +245,8 @@ function Dashboard({
         )
 
     /*
-     * Create unified feed
-     * according to saved order.
+     * Unified personalized feed
+     * based on saved drag/drop order.
      */
     const personalizedFeed =
         useMemo(() => {
@@ -278,7 +278,8 @@ function Dashboard({
                         (
                             item
                         ): item is ContentItem =>
-                            item !== undefined
+                            item !==
+                            undefined
                     )
 
             const orderedIds =
@@ -309,8 +310,45 @@ function Dashboard({
         ])
 
     /*
-     * Keep newly loaded cards inside
-     * the saved feed order.
+     * Initial loading
+     */
+    const isInitialLoading =
+        personalizedFeed.length === 0 &&
+        (
+            news.status ===
+                'loading' ||
+            recommendations.status ===
+                'loading' ||
+            social.status ===
+                'loading'
+        )
+
+    /*
+     * Check whether all initial APIs
+     * have finished.
+     */
+    const allSourcesFinished =
+        (
+            news.status === 'success' ||
+            news.status === 'error'
+        ) &&
+        (
+            recommendations.status ===
+                'success' ||
+            recommendations.status ===
+                'error'
+        ) &&
+        (
+            social.status ===
+                'success' ||
+            social.status ===
+                'error'
+        )
+
+    /*
+     * Keep feed order synchronized
+     * without destroying saved order
+     * while APIs are still loading.
      */
     useEffect(() => {
         const currentIds =
@@ -318,12 +356,23 @@ function Dashboard({
                 (item) => item.id
             )
 
-        const existingIds =
-            feedOrderIds.filter(
-                (id) =>
-                    currentIds.includes(id)
-            )
+        /*
+         * IMPORTANT:
+         *
+         * Do not overwrite localStorage
+         * while content is still empty.
+         */
+        if (currentIds.length === 0) {
+            return
+        }
 
+        const currentIdSet =
+            new Set(currentIds)
+
+        /*
+         * New content which has not
+         * appeared in saved order.
+         */
         const newIds =
             currentIds.filter(
                 (id) =>
@@ -332,10 +381,40 @@ function Dashboard({
                     )
             )
 
-        const updatedOrder = [
-            ...existingIds,
-            ...newIds,
-        ]
+        let updatedOrder: string[]
+
+        if (allSourcesFinished) {
+            /*
+             * Once all APIs are finished,
+             * remove stale IDs and keep
+             * valid saved IDs in their
+             * previous order.
+             */
+            const validSavedIds =
+                feedOrderIds.filter(
+                    (id) =>
+                        currentIdSet.has(
+                            id
+                        )
+                )
+
+            updatedOrder = [
+                ...validSavedIds,
+                ...newIds,
+            ]
+        } else {
+            /*
+             * While APIs are still loading,
+             * preserve ALL saved IDs.
+             *
+             * This is important for page
+             * reload persistence.
+             */
+            updatedOrder = [
+                ...feedOrderIds,
+                ...newIds,
+            ]
+        }
 
         const isSameOrder =
             updatedOrder.length ===
@@ -356,6 +435,7 @@ function Dashboard({
     }, [
         personalizedFeed,
         feedOrderIds,
+        allSourcesFinished,
         dispatch,
     ])
 
@@ -437,20 +517,6 @@ function Dashboard({
         )
 
     /*
-     * Initial loading
-     */
-    const isInitialLoading =
-        personalizedFeed.length === 0 &&
-        (
-            news.status ===
-                'loading' ||
-            recommendations.status ===
-                'loading' ||
-            social.status ===
-                'loading'
-        )
-
-    /*
      * All sources failed
      */
     const allSourcesFailed =
@@ -461,27 +527,6 @@ function Dashboard({
 
     const hasContent =
         personalizedFeed.length > 0
-
-    /*
-     * All initial requests finished
-     */
-    const allSourcesFinished =
-        (
-            news.status === 'success' ||
-            news.status === 'error'
-        ) &&
-        (
-            recommendations.status ===
-                'success' ||
-            recommendations.status ===
-                'error'
-        ) &&
-        (
-            social.status ===
-                'success' ||
-            social.status ===
-                'error'
-        )
 
     const hasNoContent =
         allSourcesFinished &&
@@ -513,7 +558,7 @@ function Dashboard({
     }
 
     /*
-     * Load more news
+     * Load next news page
      */
     const loadMoreNews = () => {
         if (
@@ -588,7 +633,6 @@ function Dashboard({
                                     </p>
                                 </div>
 
-                                {/* Search Loading */}
                                 {search.status ===
                                     'loading' && (
                                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -611,7 +655,6 @@ function Dashboard({
                                     </div>
                                 )}
 
-                                {/* Search Error */}
                                 {search.status ===
                                     'error' && (
                                     <ContentState
@@ -628,7 +671,6 @@ function Dashboard({
                                     />
                                 )}
 
-                                {/* Search Empty */}
                                 {search.status ===
                                     'success' &&
                                     searchItems.length ===
@@ -639,7 +681,6 @@ function Dashboard({
                                         />
                                     )}
 
-                                {/* Search Results */}
                                 {search.status ===
                                     'success' &&
                                     searchItems.length >
@@ -748,7 +789,7 @@ function Dashboard({
                                     />
                                 )}
 
-                            {/* No Content */}
+                            {/* No content */}
                             {!isInitialLoading &&
                                 !allSourcesFailed &&
                                 hasNoContent && (
@@ -811,7 +852,7 @@ function Dashboard({
 
                                         </div>
 
-                                        {/* Load More */}
+                                        {/* Load More News */}
                                         {news.hasMore && (
                                             <div className="mt-8 flex justify-center animate-fade-up">
                                                 <button

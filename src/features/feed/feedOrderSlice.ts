@@ -43,7 +43,9 @@ const feedOrderSlice = createSlice({
 
             localStorage.setItem(
                 'feedOrder',
-                JSON.stringify(state.ids)
+                JSON.stringify(
+                    state.ids
+                )
             )
         },
 
@@ -83,13 +85,21 @@ const feedOrderSlice = createSlice({
                     1
                 )
 
-            const newTargetIndex =
-                dragIndex < targetIndex
-                    ? targetIndex - 1
-                    : targetIndex
-
+            /*
+             * Insert at the target's original
+             * position after removing the
+             * dragged item.
+             *
+             * Example:
+             *
+             * A B C
+             * A dragged onto B
+             *
+             * Result:
+             * B A C
+             */
             updatedIds.splice(
-                newTargetIndex,
+                targetIndex,
                 0,
                 draggedId
             )
@@ -98,7 +108,9 @@ const feedOrderSlice = createSlice({
 
             localStorage.setItem(
                 'feedOrder',
-                JSON.stringify(state.ids)
+                JSON.stringify(
+                    state.ids
+                )
             )
         },
     },
